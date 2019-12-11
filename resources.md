@@ -38,3 +38,42 @@ registry
 10080  docker run --net airhacks -e"message=lb" -d --name config1 airhacks/config
 https://contabo.com
 https://www.hetzner.com
+https://www.okd.io/minishift/
+
+oc get bc health -o yaml --export
+
+oc port-forward config-1-v7bqf 8282:8080
+https://kubernetes.io/docs/concepts/services-networking/service/
+https://docs.openshift.com/container-platform/3.6/install_config/install/prerequisites.html
+https://docs.openshift.com/container-platform/3.4/install_config/install/planning.html#sizing
+https://github.com/okd-community-install/installcentos
+https://github.com/aws-quickstart/quickstart-redhat-openshift
+https://www.ibm.com/cloud/openshift
+https://www.openshift.com/products/azure-openshift
+
+# quarkus
+
+mvn package -DskipTest
+oc new-build --strategy docker --dockerfile - --code . --name health < ./src/main/docker/Dockerfile.jvm
+oc start-build --from-dir . health --follow
+oc new-app --image-stream airhacks/health --name health
+oc expose svc health --port=8080
+oc describe route health
+
+https://github.com/openshift/source-to-image
+
+# s2i
+
+mvn package -DskipTest
+oc new-build --strategy docker --dockerfile - --code . --name health < ./src/main/docker/Dockerfile.jvm
+oc start-build --from-dir . health --follow
+oc new-app --image-stream airhacks/health --name health
+oc expose svc health --port=8080
+oc describe route health
+
+https://github.com/kubernetes-client/java
+https://github.com/openshift/jenkins-client-plugin
+https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/
+https://cloudevents.io
+https://knative.dev
+https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/

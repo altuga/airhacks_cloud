@@ -1,0 +1,69 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: hello
+  name: hello
+spec:
+  host: hello-airhacks.192.168.64.3.nip.io
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: hello
+    weight: 100
+  wildcardPolicy: None
+status:
+  ingress: null
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: hello
+  labels:
+    app: hello
+spec:
+  selector:
+    app: hello
+  ports:
+    - port: 8080
+      name: http
+  type: NodePort
+---
+
+kind: Deployment
+apiVersion: apps/v1beta1
+metadata:
+  name: hello
+  labels:
+    app: hello
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: hello
+        version: v1
+    spec:
+      containers:
+      - name: hello
+        image:  172.30.1.1:5000/airhacks/hello:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: samplescreation
+          valueFrom:
+            configMapKeyRef:
+              name: hello-config
+              key: hellomessage
+      restartPolicy: Always
+---
+
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: hello-config
+data:
+  hellomessage: hello
+---

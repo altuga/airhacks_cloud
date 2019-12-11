@@ -1,0 +1,77 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewBuild
+  creationTimestamp: null
+  labels:
+    build: health
+  name: health
+  selfLink: /apis/build.openshift.io/v1/namespaces/airhacks/buildconfigs/health
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: health:latest
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    dockerfile: |-
+      ####
+      # This Dockerfile is used in order to build a container that runs the Quarkus application in JVM mode
+      #
+      # Before building the docker image run:
+      #
+      # mvn package
+      #
+      # Then, build the image with:
+      #
+      # docker build -f src/main/docker/Dockerfile.jvm -t quarkus/health-jvm .
+      #
+      # Then run the container using:
+      #
+      # docker run -i --rm -p 8080:8080 quarkus/health-jvm
+      #
+      ###
+      FROM fabric8/java-alpine-openjdk8-jre
+      ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+      ENV AB_ENABLED=jmx_exporter
+      COPY target/lib/* /deployments/lib/
+      COPY target/*-runner.jar /deployments/app.jar
+      EXPOSE 8080
+
+      # run with user 1001 and be prepared for be running in OpenShift too
+      RUN adduser -G root --no-create-home --disabled-password 1001 \
+        && chown -R 1001 /deployments \
+        && chmod -R "g+rwX" /deployments \
+        && chown -R 1001:root /deployments
+      USER 1001
+
+      ENTRYPOINT [ "/deployments/run-java.sh" ]
+    git:
+      ref: master
+      uri: https://github.com/AdamBien/airhacks.git
+    type: Git
+  strategy:
+    dockerStrategy:
+      from:
+        kind: ImageStreamTag
+        name: java-alpine-openjdk8-jre:latest
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - github:
+      secret: 6CSNg7VtUoRqrHOxW94g
+    type: GitHub
+  - generic:
+      secret: Iil5Ef_89wkerepNUgsm
+    type: Generic
+  - type: ConfigChange
+  - imageChange:
+      lastTriggeredImageID: fabric8/java-alpine-openjdk8-jre@sha256:4c8c834428855aa37e29fe896f5a3a829ccdde3bcd1ab5b71a17a1b3136c4176
+    type: ImageChange
+status:
+  lastVersion: 1
